@@ -399,12 +399,13 @@ var CRITERIA=[
   'My <b>name and period</b> are typed in, and I am submitting my PDF on <b>Google Classroom</b> today.'
 ];
 var S={name:'',period:'',defs:{},bonusLabels:{bonus1:'BONUS!',bonus2:'BONUS!'},
-  cells:{},stars:[],expl:['','','','','',''],crit:[false,false,false,false,false,false],stage:0};
+  cells:{},stars:[],expl:['','','','','',''],crit:[false,false,false,false,false,false],t0:0,pastes:{defs:0,expl:0,chars:0},stage:0};
 var KEY='gridgame-econ1-v2';
 
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function load(){try{var d=localStorage.getItem(KEY);if(d){var o=JSON.parse(d);for(var k in S)if(o[k]!==undefined)S[k]=o[k];}}catch(e){}}
 load();
+if(!S.t0){S.t0=Date.now();save();}
 
 /* ================= begin / music ================= */
 var bgm=document.getElementById('bgm'),muted=false;
@@ -681,6 +682,53 @@ CRITERIA.forEach(function(c,i){
   d.appendChild(cb);d.appendChild(la);cl.appendChild(d);
 });
 
+
+/* ================= completion tracker (Google Sheet) ================= */
+/* Paste your Apps Script web-app /exec URL between the quotes below. */
+var TRACKER_URL='https://script.google.com/macros/s/AKfycbyt_3MiJKaCRixmGR18wIieVrtzPSwGk-zAEsolRE5-NrOdA0H5ghPhOsaGgNOIDDIv/exec';
+var GAME_NAME='Grid Game Econ 1';
+
+/* paste watcher — counts (never blocks) pastes into the definition and explanation boxes */
+S.pastes=S.pastes||{defs:0,expl:0,chars:0};
+document.addEventListener('paste',function(e){
+  var t=e.target;if(!t||t.tagName!=='TEXTAREA'||!t.closest)return;
+  var where=t.closest('.defcell')?'defs':(t.closest('.expl')?'expl':'');
+  if(!where)return;
+  var txt='';try{txt=((e.clipboardData||window.clipboardData).getData('text')||'');}catch(err){}
+  S.pastes[where]=(S.pastes[where]||0)+1;
+  S.pastes.chars=(S.pastes.chars||0)+txt.length;
+  save();
+},true);
+
+function trackerPayload(){
+  var ids=placedIds(),cs=chainStatus();
+  var w=(S.expl||[]).map(function(t){t=(t||'').trim();return t?t.split(/\s+/).length:0;});
+  var df=0;for(var k in S.defs){if((S.defs[k]||'').trim())df++;}
+  return{game:GAME_NAME,name:S.name||'',period:S.period||'',
+    defsFilled:df,defsTotal:TERMS.length,
+    hexes:ids.length,bonusUsed:bonusUsed(),chainOk:cs.ok,chainMsg:cs.msg,
+    stars:(S.stars||[]).length,starsNeeded:(S.expl||[]).length,explWords:w,
+    critChecked:(S.crit||[]).filter(function(b){return b;}).length,critTotal:(S.crit||[]).length,
+    timeSpent:S.t0?Math.round((Date.now()-S.t0)/1000):'',
+    pastesDefs:S.pastes.defs||0,pastesExpl:S.pastes.expl||0,pasteChars:S.pastes.chars||0,
+    termLabels:TERMS.map(function(t){return t.label;}),
+    defsText:TERMS.map(function(t){return (S.defs[t.id]||'').trim();}),
+    explText:(S.expl||[]).map(function(t){return (t||'').trim();}),
+    starPairs:(typeof starPairs==='function')?starPairs():[],
+    ts:new Date().toISOString()};
+}
+function sendTracker(){
+  if(!TRACKER_URL||TRACKER_URL.indexOf('http')!==0)return;
+  try{
+    var body=JSON.stringify(trackerPayload());
+    if(navigator.sendBeacon){
+      navigator.sendBeacon(TRACKER_URL,new Blob([body],{type:'text/plain;charset=UTF-8'}));
+    }else{
+      fetch(TRACKER_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:body});
+    }
+  }catch(e){}
+}
+
 /* ================= finish / report ================= */
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function boardSVG(){
@@ -715,6 +763,7 @@ document.getElementById('finishBtn').addEventListener('click',function(){
   musicStopped=true;fadeOutMusic();
   buildReport();
   document.title='GridGame-Econ1-'+(S.name.trim().replace(/\s+/g,'')||'Player');
+  sendTracker();
   setTimeout(function(){window.print();},60);
 });
 function buildReport(){
