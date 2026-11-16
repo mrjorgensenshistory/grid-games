@@ -131,6 +131,7 @@ table.ex th{background:var(--panel2);color:var(--teal);}
 .defcell textarea{width:100%;min-height:9vh;background:#120e1c;border:1.5px solid var(--line);border-radius:8px;
   color:var(--bone);font-size:1.8vh;font-family:inherit;padding:.8vh .6vw;resize:vertical;}
 .defcell textarea:focus{outline:none;border-color:var(--teal);}
+.defcell .ask{font-size:1.35vh;font-weight:800;color:var(--teal);letter-spacing:.08em;margin:-.2vh 0 .6vh;}
 @media (max-width:900px){.defgrid{grid-template-columns:1fr;}}
 
 /* ===== HEX BOARD (honeycomb snap grid) ===== */
@@ -264,7 +265,7 @@ table.ex th{background:var(--panel2);color:var(--teal);}
           <p>Complete <b>each of the following clauses</b>. Finish all three and clear the Success Criteria to win the game.</p>
         </div>
       </div>
-      <p><b>Clause #1 — Define the Terms.</b> You have been given <span class="hl">ten terms</span> from the unit. Provide your own definition for each. That&rsquo;s right, <b>your own</b> definition. Not mine. Not Google&rsquo;s. <b>Yours.</b></p>
+      <p><b>Clause #1 — Define the Terms.</b> You have been given <span class="hl">ten terms</span> from the unit. Provide your own definition for each. That&rsquo;s right, <b>your own</b> definition. Not mine. Not Google&rsquo;s. <b>Yours.</b> For the <span class="hl">four kinds of business</span> (sole proprietorship, partnership, corporation, franchise), skip the definition and give <b>one advantage and one disadvantage</b> of each instead.</p>
       <p><b>Clause #2 — Make Connections.</b> Drag the hexagons to build your web on the game board. Each hexagon can connect to up to six others. You must make <span class="hl">one continuous chain using at least 8 of the hexes</span>. There shouldn&rsquo;t be an island of 2 hexes off in a corner. You may use the <b>BONUS!</b> hexes to add more words to your web — change them to any other word. <span class="hl">(To get a 100% you must use at least one BONUS! hex, for 9 total hexes.)</span></p>
       <p><b>Clause #3 — Explain Connections.</b> Lastly, you will explain <span class="hl">4 of the connections</span> in your hex web. <b>Star</b> the connections you will explain (click a line), then write those explanations out. Make sure your explanations are thorough and clearly reflect <b>how and why</b> you connected those terms. It is especially important that you explain any <b>complex connections</b> (where 3 hexes connect) as those may not be obvious.</p>
     </div>
@@ -298,7 +299,7 @@ table.ex th{background:var(--panel2);color:var(--teal);}
   <div class="screen" id="s1">
     <div class="card">
       <h3>CLAUSE 1: DEFINE IT <span class="shapes"><i class="c"></i></span></h3>
-      <p>Your own words. Not mine. Not Google&rsquo;s. <b>Yours.</b></p>
+      <p>Your own words. Not mine. Not Google&rsquo;s. <b>Yours.</b> The four kinds of business are marked: for those, write <b>one advantage and one disadvantage</b> instead of a definition.</p>
       <div class="who">
         <div><label>PLAYER NAME</label><input id="pname" placeholder="First Last" maxlength="60"></div>
         <div><label>PERIOD</label><input id="pperiod" placeholder="e.g. 3" maxlength="12" style="min-width:110px"></div>
@@ -379,10 +380,10 @@ table.ex th{background:var(--panel2);color:var(--teal);}
 <script>
 /* ================= state ================= */
 var TERMS=[
-  {id:'soleprop',label:'Sole Proprietorship'},
-  {id:'partner',label:'Partnership'},
-  {id:'corp',label:'Corporation'},
-  {id:'franchise',label:'Franchise'},
+  {id:'soleprop',label:'Sole Proprietorship',adv:1},
+  {id:'partner',label:'Partnership',adv:1},
+  {id:'corp',label:'Corporation',adv:1},
+  {id:'franchise',label:'Franchise',adv:1},
   {id:'unlimliab',label:'Unlimited Liability'},
   {id:'limliab',label:'Limited Liability'},
   {id:'humancap',label:'Human Capital'},
@@ -392,7 +393,7 @@ var TERMS=[
 ];
 var BONUS=[{id:'bonus1',label:'BONUS!'},{id:'bonus2',label:'BONUS!'}];
 var CRITERIA=[
-  'I defined all <b>10 terms in my own words</b> — not the teacher’s, not Google’s. (Clause 1)',
+  'I filled in all <b>10 boxes in my own words</b> — an advantage AND a disadvantage for each of the 4 kinds of business, a definition for the other 6. (Clause 1)',
   'My web is <b>one continuous chain of at least 8 hexes</b> — no islands of 2 hexes off in a corner. (Clause 2)',
   'I used <b>at least one BONUS! hex</b> (9+ hexes total) — the 100% requirement. (Clause 2)',
   'I <b>starred 4 connections</b> on the board and explained each one <b>thoroughly (how AND why)</b>. (Clause 3)',
@@ -463,8 +464,8 @@ pp.addEventListener('input',function(){S.period=pp.value;save();});
 var dg=document.getElementById('defgrid');
 TERMS.forEach(function(t){
   var c=document.createElement('div');c.className='defcell';
-  c.innerHTML='<div class="term">'+t.label+'</div>';
-  var ta=document.createElement('textarea');ta.placeholder='Your definition — in YOUR words…';
+  c.innerHTML='<div class="term">'+t.label+'</div>'+(t.adv?'<div class="ask">ADVANTAGE + DISADVANTAGE</div>':'');
+  var ta=document.createElement('textarea');ta.placeholder=t.adv?'One ADVANTAGE of this kind of business and one DISADVANTAGE — in YOUR words…':'Your definition — in YOUR words…';
   ta.value=S.defs[t.id]||'';
   ta.addEventListener('input',function(){S.defs[t.id]=ta.value;save();});
   c.appendChild(ta);dg.appendChild(c);
@@ -770,7 +771,7 @@ function buildReport(){
   var pairs=starPairs(),h='';
   h+='<h1>GRID GAME — Econ Level 3</h1>';
   h+='<div class="meta"><b>'+esc(S.name)+'</b> · Period '+esc(S.period)+' · Unit 3: Business in Action · 3단원 기업 활동</div>';
-  h+='<h2>Clause 1 — Definitions (my own words)</h2><table><tr><th style="width:22%">Term</th><th>My definition</th></tr>';
+  h+='<h2>Clause 1 — In My Own Words (advantage + disadvantage for the 4 kinds of business, definitions for the rest)</h2><table><tr><th style="width:22%">Term</th><th>My answer</th></tr>';
   TERMS.forEach(function(t){h+='<tr><td><b>'+esc(t.label)+'</b></td><td>'+esc(S.defs[t.id]||'')+'</td></tr>';});
   h+='</table>';
   h+='<h2>Clause 2 — My Hex Web (⭐ numbered = explained below)</h2>'+boardSVG();
