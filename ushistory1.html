@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grid Game — US History 1: Cause &amp; Effect (1840s–1941)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#1d1a16;--paper:#f3ead8;--paper2:#e8dcc4;--line:#b9a885;--linedk:#8c7a58;
+  --accent:#9b2d20;--accent2:#c4452f;--teal:#2f6b63;--gold:#a8791f;--ok:#2f7a44;--bad:#9b2d20;
+  --spine:#2b3a55;
+}
+html,body{width:100%;min-height:100%;background:var(--paper);color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;}
+body{overflow-x:hidden;}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif;font-weight:700;letter-spacing:.01em;}
+
+/* ===== begin overlay ===== */
+#begin{position:fixed;inset:0;z-index:100;background:var(--paper);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vh;padding:0 8vw;text-align:center;}
+#begin.hidden{display:none;}
+#begin .rule{width:52vw;max-width:680px;border-top:3px double var(--linedk);}
+#begin .kicker{letter-spacing:.42em;font-size:1.9vh;color:var(--accent);font-weight:700;text-transform:uppercase;}
+#begin h1{font-size:6.4vh;line-height:1.05;max-width:900px;}
+#begin .sub{font-size:2.4vh;color:#564c3c;max-width:760px;line-height:1.5;}
+#begin .yr{font-size:2vh;letter-spacing:.3em;color:var(--teal);font-weight:700;}
+#begin button{margin-top:1.4vh;font-size:2.6vh;font-weight:700;letter-spacing:.12em;padding:1.8vh 6vw;cursor:pointer;
+  color:var(--paper);background:var(--accent);border:none;border-radius:4px;font-family:inherit;}
+#begin button:hover{background:var(--accent2);}
+#begin .fine{font-size:1.5vh;color:#6d6252;max-width:62vw;font-style:italic;}
+
+/* ===== chrome ===== */
+#app{max-width:1500px;margin:0 auto;padding:0 2vw 12vh;}
+.topbar{position:sticky;top:0;z-index:50;background:linear-gradient(var(--paper) 86%,rgba(243,234,216,0));padding:1.2vh 0 1vh;}
+.brand{display:flex;align-items:baseline;gap:1vw;margin-bottom:1vh;flex-wrap:wrap;}
+.brand h2{color:var(--accent);font-size:2.4vh;}
+.brand .u{color:var(--teal);font-size:1.6vh;font-weight:700;letter-spacing:.08em;}
+.brand .who2{margin-left:auto;font-size:1.5vh;color:#6d6252;}
+.stages{display:flex;gap:.4vw;flex-wrap:wrap;}
+.stage-btn{flex:1;min-width:116px;background:var(--paper2);color:#6d6252;border:2px solid var(--line);
+  border-radius:4px;font-size:1.45vh;font-weight:700;letter-spacing:.04em;padding:1vh .4vw;cursor:pointer;text-align:center;font-family:inherit;}
+.stage-btn .n{display:inline-flex;align-items:center;justify-content:center;width:2.2vh;height:2.2vh;border-radius:50%;
+  background:var(--line);color:var(--paper);font-size:1.25vh;margin-right:.35vw;}
+.stage-btn.active{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.stage-btn.active .n{background:var(--paper);color:var(--accent);}
+.stage-btn.done{border-color:var(--ok);color:var(--ok);}
+.stage-btn.done .n{background:var(--ok);color:#fff;}
+
+.screen{display:none;padding-top:1.6vh;}
+.screen.on{display:block;}
+.card{background:#fbf6ea;border:2px solid var(--line);border-radius:6px;padding:2.2vh 2vw;margin-bottom:2vh;
+  box-shadow:0 1px 0 #fff inset;}
+.card h3{color:var(--accent);font-size:2.4vh;margin-bottom:1vh;}
+.card p{font-size:1.85vh;line-height:1.6;margin-bottom:1vh;}
+.card p b{color:var(--accent);}
+.card ul{margin:0 0 1vh 1.3vw;font-size:1.8vh;line-height:1.6;}
+.hl{color:var(--teal);font-weight:700;}
+.who{display:flex;gap:1.2vw;flex-wrap:wrap;margin-bottom:1.4vh;}
+.who label{font-size:1.6vh;font-weight:700;color:var(--teal);display:block;margin-bottom:.4vh;letter-spacing:.06em;}
+.who input,.who select{background:#fff;border:2px solid var(--line);border-radius:4px;color:var(--ink);
+  font-size:1.9vh;padding:.9vh .8vw;min-width:240px;font-family:inherit;}
+.who input:focus,.who select:focus{outline:none;border-color:var(--accent);}
+.btn{background:var(--paper2);border:2px solid var(--accent);color:var(--ink);border-radius:4px;
+  font-size:1.65vh;font-weight:700;padding:.85vh 1.4vw;cursor:pointer;font-family:inherit;}
+.btn:hover{background:var(--accent);color:var(--paper);}
+.btn.teal{border-color:var(--teal);} .btn.teal:hover{background:var(--teal);color:var(--paper);}
+.btn.ghost{border-color:var(--line);color:#6d6252;} .btn.ghost:hover{background:var(--line);color:var(--paper);}
+.btn[disabled]{opacity:.45;cursor:not-allowed;}
+
+/* ===== stage 1 : spine ordering ===== */
+.spinewrap{display:flex;flex-direction:column;gap:.7vh;}
+.spinerow{display:flex;align-items:center;gap:.8vw;background:var(--paper2);border:2px solid var(--line);
+  border-radius:4px;padding:.9vh 1vw;cursor:grab;user-select:none;}
+.spinerow.dragging{opacity:.45;}
+.spinerow .num{display:inline-flex;align-items:center;justify-content:center;min-width:2.6vh;height:2.6vh;
+  border-radius:50%;background:var(--spine);color:#fff;font-size:1.4vh;font-weight:700;}
+.spinerow .lab{font-size:1.9vh;font-weight:700;}
+.spinerow .grip{margin-left:auto;color:var(--line);font-size:2vh;}
+.spinerow.right{border-color:var(--ok);}
+.spinerow.wrong{border-color:var(--bad);}
+
+/* ===== stage 2 : the board ===== */
+.boardbar{display:flex;gap:.7vw;align-items:center;flex-wrap:wrap;margin-bottom:1vh;}
+.modebtn{background:var(--paper2);border:2px solid var(--line);color:#6d6252;border-radius:4px;
+  font-size:1.6vh;font-weight:700;padding:.8vh 1.2vw;cursor:pointer;font-family:inherit;}
+.modebtn.on{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+#board{position:relative;height:62vh;min-height:430px;border:2px solid var(--line);border-radius:6px;
+  overflow:hidden;background:#fbf6ea;
+  background-image:linear-gradient(rgba(185,168,133,.17) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(185,168,133,.17) 1px,transparent 1px);
+  background-size:34px 34px;touch-action:none;}
+#arrowlayer{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+.node{position:absolute;z-index:2;width:132px;min-height:54px;padding:7px 9px;cursor:grab;user-select:none;touch-action:none;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  background:var(--paper2);border:2px solid var(--linedk);border-radius:5px;
+  font-size:12.6px;line-height:1.16;font-weight:700;color:var(--ink);box-shadow:1px 1px 0 rgba(0,0,0,.12);}
+.node.spine{background:var(--spine);color:#fff;border-color:#16203a;border-width:3px;width:140px;}
+.node.film{background:#efe3c6;border-color:var(--gold);border-style:dashed;}
+.node.dragging{z-index:9;opacity:.85;cursor:grabbing;}
+.node.src{outline:3px solid var(--accent);outline-offset:2px;}
+.node.hot{outline:3px dashed var(--teal);outline-offset:2px;}
+#tray{display:flex;gap:.4vw;flex-wrap:wrap;background:var(--paper2);border:2px solid var(--line);
+  border-radius:6px;padding:.8vh .8vw;margin-top:1vh;max-height:22vh;overflow-y:auto;}
+#tray .node{position:relative;left:auto!important;top:auto!important;transform:scale(.84);margin:-5px -9px;}
+.traylab{width:100%;font-size:1.35vh;color:#6d6252;font-weight:700;letter-spacing:.08em;margin-bottom:.4vh;}
+.chip{background:var(--paper2);border:2px solid var(--line);border-radius:18px;padding:.6vh 1vw;font-size:1.5vh;font-weight:700;}
+.chip.ok{border-color:var(--ok);color:var(--ok);}
+.chip.bad{border-color:var(--bad);color:var(--bad);}
+.chips{display:flex;gap:.5vw;flex-wrap:wrap;margin-top:1vh;}
+#coach{background:#fbf6ea;border:2px solid var(--accent);border-radius:5px;margin-bottom:.8vh;
+  font-size:1.6vh;font-weight:700;padding:.85vh 1.2vw;text-align:center;min-height:1px;}
+#coach b{color:var(--accent);} #coach.hide{display:none;}
+.arrowpath{stroke:var(--accent);stroke-width:2.6;fill:none;cursor:pointer;}
+.arrowhit{stroke:transparent;stroke-width:16;fill:none;cursor:pointer;}
+.arrowpath.sel{stroke:var(--teal);stroke-width:4;}
+.arrowpath.loop{stroke:var(--gold);stroke-width:3.6;}
+.arrowpath.noexpl{stroke-dasharray:7 5;}
+
+/* ===== explanations ===== */
+.expl{background:#fbf6ea;border:2px solid var(--line);border-radius:5px;padding:1.1vh 1vw;margin-bottom:1vh;}
+.expl .lab{font-size:1.75vh;font-weight:700;color:var(--accent);margin-bottom:.5vh;}
+.expl .frame{font-size:1.65vh;color:#6d6252;margin-bottom:.5vh;font-style:italic;}
+.expl textarea{width:100%;min-height:7vh;background:#fff;border:1.5px solid var(--line);border-radius:4px;
+  color:var(--ink);font-size:1.75vh;font-family:inherit;padding:.7vh .6vw;resize:vertical;}
+.expl textarea:focus{outline:none;border-color:var(--teal);}
+.expl.done{border-color:var(--ok);}
+.loopbox{background:#fbf6ea;border:2px solid var(--gold);border-radius:5px;padding:1.1vh 1vw;margin-bottom:1vh;}
+.loopbox .lab{font-size:1.75vh;font-weight:700;color:var(--gold);margin-bottom:.5vh;}
+.loopbox input{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:4px;
+  color:var(--ink);font-size:1.75vh;font-family:inherit;padding:.7vh .6vw;}
+.trayleft{background:#fbf6ea;border:2px dashed var(--linedk);border-radius:5px;padding:1.1vh 1vw;margin-bottom:1vh;}
+table.crit{width:100%;border-collapse:collapse;font-size:1.75vh;}
+table.crit td{border:1.5px solid var(--line);padding:.9vh .8vw;vertical-align:top;}
+table.crit td.c{width:38px;text-align:center;}
+.savebox{background:#efe3c6;border:2px solid var(--gold);border-radius:6px;padding:1.4vh 1.2vw;margin-bottom:2vh;}
+.savebox h3{color:var(--gold);}
+.warn{color:var(--bad);font-weight:700;font-size:1.7vh;margin-top:1vh;}
+.okmsg{color:var(--ok);font-weight:700;font-size:1.7vh;margin-top:1vh;}
+
+/* ===== print report ===== */
+#report{display:none;}
+@media print{
+  @page{size:letter portrait;margin:.6in;}
+  body{background:#fff;}
+  #begin,#app,.topbar{display:none!important;}
+  #report{display:block!important;color:#000;font-family:Georgia,serif;}
+  #report h1{font-size:17pt;margin-bottom:3pt;}
+  #report h2{font-size:12.5pt;margin:12pt 0 4pt;border-bottom:1px solid #999;padding-bottom:2pt;}
+  #report .meta{font-size:10pt;margin-bottom:8pt;}
+  #report table{width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:6pt;}
+  #report th,#report td{border:1px solid #888;padding:3.5pt 5pt;text-align:left;vertical-align:top;}
+  #report th{background:#eee;}
+  #report .rc{font-size:9.5pt;margin:2pt 0;}
+  #report svg{width:100%;height:auto;max-height:4.6in;}
+  .pagebreak{page-break-before:always;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ BEGIN ============ -->
+<div id="begin">
+  <div class="kicker">Grid Game &middot; United States History</div>
+  <div class="rule"></div>
+  <h1>How America Got From There To Here</h1>
+  <div class="yr">1840s &nbsp;&bull;&nbsp; 1941</div>
+  <div class="rule"></div>
+  <p class="sub">Everything you studied this semester is on one board. Your job is not to say which events
+  go together. Your job is to say <b>which one caused which</b>, and to prove it.</p>
+  <button id="playBtn">BEGIN</button>
+  <p class="fine">Two class days. Save your work before you leave on day one.</p>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <h2>CAUSE &amp; EFFECT</h2>
+      <span class="u">US HISTORY &middot; SEMESTER REVIEW</span>
+      <span class="who2" id="who2"></span>
+    </div>
+    <div class="stages">
+      <button class="stage-btn" data-s="0"><span class="n">1</span>Briefing</button>
+      <button class="stage-btn" data-s="1"><span class="n">2</span>The Spine</button>
+      <button class="stage-btn" data-s="2"><span class="n">3</span>The Board</button>
+      <button class="stage-btn" data-s="3"><span class="n">4</span>Explain</button>
+      <button class="stage-btn" data-s="4"><span class="n">5</span>Loops</button>
+      <button class="stage-btn" data-s="5"><span class="n">6</span>Submit</button>
+    </div>
+  </div>
+
+  <!-- ---------- S0 briefing ---------- -->
+  <div class="screen on" id="s0">
+    <div class="card">
+      <h3>What you are doing</h3>
+      <p>One semester. Roughly a hundred years. On this board it all becomes one question:
+      <b>what caused what?</b></p>
+      <p>You will lay down a spine of ten big events in order, hang the smaller pieces off it, and draw
+      an <b>arrow</b> every time you believe one thing caused another. Every arrow you draw, you have to
+      defend in a sentence.</p>
+      <ul>
+        <li><b>An arrow is a claim.</b> It points from the cause to the effect. Pointing it the wrong way
+        is a different claim, and a wrong one.</li>
+        <li><b>Some pieces in the tray do not belong in the chain at all.</b> They happened in these years.
+        That is not the same as causing anything. Leave them in the tray if that is what you believe.</li>
+        <li><b>Some causes come back around.</b> If you can find a circle, where an effect turns into a
+        cause of the thing that made it, you have found the most interesting thing on this board.</li>
+      </ul>
+      <p class="hl">You are graded on your sentences, not on matching an answer key. An unusual arrow you
+      defend well beats an obvious arrow you say nothing about.</p>
+    </div>
+    <div class="card">
+      <h3>Who are you?</h3>
+      <div class="who">
+        <div><label>FULL NAME</label><input id="pname" placeholder="First and last"></div>
+        <div><label>PERIOD</label>
+          <select id="pperiod">
+            <option value="">choose…</option>
+            <option>4</option><option>5</option><option>6</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:1.6vh;color:#6d6252;">Type your name the same way both days so your work comes back to you.</p>
+    </div>
+  </div>
+
+  <!-- ---------- S1 spine ---------- -->
+  <div class="screen" id="s1">
+    <div class="card">
+      <h3>The Spine</h3>
+      <p>These ten carried the whole semester. Drag them into the order they happened. You can check
+      yourself as many times as you want, and nothing is recorded until you submit.</p>
+      <div class="spinewrap" id="spinelist"></div>
+      <div class="boardbar" style="margin-top:1.2vh;">
+        <button class="btn" id="checkSpine">CHECK MY ORDER</button>
+        <button class="btn ghost" id="shuffleSpine">SHUFFLE AGAIN</button>
+        <span class="chip" id="spineChip">not checked yet</span>
+      </div>
+      <p style="font-size:1.6vh;color:#6d6252;margin-top:1vh;">Once the order is right, go to The Board. The
+      spine will already be laid out for you, left to right.</p>
+    </div>
+  </div>
+
+  <!-- ---------- S2 board ---------- -->
+  <div class="screen" id="s2">
+    <div class="card">
+      <h3>The Board</h3>
+      <div class="boardbar">
+        <button class="modebtn on" id="modeMove">MOVE</button>
+        <button class="modebtn" id="modeArrow">DRAW ARROW</button>
+        <button class="btn ghost" id="autoSpine">LAY OUT THE SPINE</button>
+        <button class="btn ghost" id="clearSel">DESELECT</button>
+        <span style="font-size:1.55vh;color:#6d6252;">In <b>DRAW ARROW</b>: click the cause, then click the effect. Click an arrow to flip or delete it.</span>
+      </div>
+      <div id="coach" class="hide"></div>
+      <div id="board">
+        <svg id="arrowlayer"><defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b2d20"/>
+          </marker>
+          <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#a8791f"/>
+          </marker>
+          <marker id="aht" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6b63"/>
+          </marker>
+        </defs></svg>
+      </div>
+      <div class="chips" id="boardChips"></div>
+      <div id="tray"><div class="traylab">TRAY — drag a piece onto the board to use it. Anything you believe did not cause anything can stay here.</div></div>
+    </div>
+  </div>
+
+  <!-- ---------- S3 explanations ---------- -->
+  <div class="screen" id="s3">
+    <div class="card">
+      <h3>Defend Every Arrow</h3>
+      <p>One sentence each. Finish the frame. If you cannot finish it, that arrow probably should not be
+      there, and you can go back and delete it.</p>
+      <div id="explwrap"></div>
+    </div>
+  </div>
+
+  <!-- ---------- S4 loops ---------- -->
+  <div class="screen" id="s4">
+    <div class="card">
+      <h3>Loops</h3>
+      <p>A loop is a circle of arrows: A caused B, B caused C, and C came back around to cause more A.
+      Loops are why some problems kept getting worse instead of settling down.</p>
+      <p>If your board has one, it is listed below. <b>Name it</b> and you get credit for finding it.
+      If nothing is listed, go back to the board and look for a circle.</p>
+      <div id="loopwrap"></div>
+    </div>
+    <div class="card">
+      <h3>Still in the Tray</h3>
+      <p>These are the pieces you left out of the chain. For each one, say in a few words <b>why it does
+      not belong</b>, or go back and connect it.</p>
+      <div id="traywrap"></div>
+    </div>
+  </div>
+
+  <!-- ---------- S5 submit ---------- -->
+  <div class="screen" id="s5">
+    <div class="savebox">
+      <h3>Saving between day one and day two</h3>
+      <p style="font-size:1.75vh;line-height:1.55;">Your work saves automatically <b>on this Chromebook, in
+      this browser</b>. If there is any chance you will be on a different machine tomorrow, click
+      <b>SAVE MY WORK TO A FILE</b> before you leave and keep the file. Tomorrow, click <b>LOAD MY WORK</b>
+      and pick it.</p>
+      <div class="boardbar">
+        <button class="btn teal" id="saveFile">SAVE MY WORK TO A FILE</button>
+        <button class="btn ghost" id="loadFile">LOAD MY WORK FROM A FILE</button>
+        <input type="file" id="fileIn" accept="application/json,.json" style="display:none">
+        <span id="saveMsg" style="font-size:1.6vh;color:var(--ok);font-weight:700;"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Success Criteria</h3>
+      <table class="crit" id="crittable"></table>
+      <div class="boardbar" style="margin-top:1.4vh;">
+        <button class="btn" id="finishBtn">FINISH &amp; PRINT MY REPORT</button>
+        <span style="font-size:1.55vh;color:#6d6252;">Choose <b>Save as PDF</b>, then turn it in on Google Classroom.</span>
+      </div>
+      <div class="warn" id="finishWarn"></div>
+    </div>
+  </div>
+</div>
+
+<div id="report"></div>
+
+<script>
+/* =======================================================================
+   GRID GAME — US HISTORY 1 : CAUSE & EFFECT
+   Shell patterns (state, stage nav, autosave, paste watcher, tracker POST,
+   SVG report, print) follow the Econ grid games. The BOARD is new: directed
+   arrows, chain-depth validation and cycle detection replace hex adjacency.
+   ======================================================================= */
+
+/* ---------------- content ---------------- */
+var SPINE=[
+ {id:'manifest', label:'Manifest Destiny',          yr:1845},
+ {id:'industry', label:'Industrialization &amp; the Railroads', yr:1869},
+ {id:'immig',    label:'Immigration &amp; the Cities',   yr:1880},
+ {id:'progress', label:'The Progressive Era',       yr:1901},
+ {id:'imperial', label:'American Imperialism',      yr:1898},
+ {id:'wwi',      label:'World War I',               yr:1917},
+ {id:'versail',  label:'The Treaty of Versailles',  yr:1919},
+ {id:'twenties', label:'The Roaring Twenties',      yr:1921},
+ {id:'depress',  label:'The Great Depression',      yr:1929},
+ {id:'newdeal',  label:'The New Deal',              yr:1933}
+];
+/* true chronological order used by CHECK MY ORDER */
+var SPINE_ORDER=['manifest','industry','immig','imperial','progress','wwi','versail','twenties','depress','newdeal'];
+
+var BRANCH=[
+ {id:'trusts',   label:'Monopolies &amp; Trusts'},
+ {id:'barons',   label:'Robber Barons'},
+ {id:'unions',   label:'Labor Unions &amp; Strikes'},
+ {id:'child',    label:'Child Labor'},
+ {id:'socdarw',  label:'Social Darwinism'},
+ {id:'ellis',    label:'Ellis Island'},
+ {id:'tenement', label:'Tenements &amp; Slums'},
+ {id:'machines', label:'Political Machines'},
+ {id:'nativism', label:'Nativism'},
+ {id:'muck',     label:'The Muckrakers'},
+ {id:'triangle', label:'Triangle Shirtwaist Fire'},
+ {id:'suffrage', label:'Women&rsquo;s Suffrage'},
+ {id:'yellow',   label:'Yellow Journalism'},
+ {id:'spanam',   label:'Spanish-American War'},
+ {id:'alliance', label:'The Alliance System'},
+ {id:'lusit',    label:'Lusitania &amp; Zimmermann'},
+ {id:'espion',   label:'Espionage &amp; Sedition Acts'},
+ {id:'quotas',   label:'Immigration Quota Laws'},
+ {id:'credit',   label:'Buying on Credit'},
+ {id:'overprod', label:'Overproduction'},
+ {id:'dustbowl', label:'The Dust Bowl'}
+];
+var FILMS=[
+ {id:'faraway', label:'FILM: Far and Away'},
+ {id:'newsies', label:'FILM: Newsies'},
+ {id:'warhorse',label:'FILM: War Horse'}
+];
+var DECOYS=[
+ {id:'prohib',  label:'Prohibition'},
+ {id:'scopes',  label:'The Scopes Trial'},
+ {id:'lindy',   label:'Lindbergh&rsquo;s Flight'}
+];
+var DECOY_IDS={prohib:1,scopes:1,lindy:1};
+var ALL=[].concat(SPINE,BRANCH,FILMS,DECOYS);
+function node(id){for(var i=0;i<ALL.length;i++)if(ALL[i].id===id)return ALL[i];return null;}
+function labelOf(id){var n=node(id);return n?n.label.replace(/&amp;/g,'&').replace(/&rsquo;/g,"'"):id;}
+function isSpine(id){for(var i=0;i<SPINE.length;i++)if(SPINE[i].id===id)return true;return false;}
+function isFilm(id){for(var i=0;i<FILMS.length;i++)if(FILMS[i].id===id)return true;return false;}
+
+var CRITERIA=[
+ 'All <b>10 spine events</b> are on the board and connected in order.',
+ 'At least <b>8 other pieces</b> are wired into the chain.',
+ 'I have at least one <b>chain three causes deep</b> (A caused B caused C caused D).',
+ 'I found and named at least one <b>loop</b>.',
+ 'All <b>3 film pieces</b> are connected, each with a scene named.',
+ 'Every arrow has a sentence defending it.',
+ 'My name and period are typed in and I am turning the PDF in on Google Classroom today.'
+];
+
+/* ---------------- state ---------------- */
+var S={name:'',period:'',pos:{},arrows:[],expl:{},loops:{},trayWhy:{},
+       crit:[false,false,false,false,false,false,false],spineChecked:false,
+       t0:0,pastes:{expl:0,chars:0},stage:0,day2:false};
+var KEY='gridgame-ushistory1-v1';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{var d=localStorage.getItem(KEY);if(d){var o=JSON.parse(d);for(var k in S)if(o[k]!==undefined)S[k]=o[k];}}catch(e){}}
+load();
+if(!S.t0){S.t0=Date.now();save();}
+
+/* ---------------- begin ---------------- */
+document.getElementById('playBtn').addEventListener('click',function(){
+  document.getElementById('begin').classList.add('hidden');
+  go(S.stage||0);
+});
+
+/* ---------------- stage nav ---------------- */
+function go(n){
+  S.stage=n;save();
+  var screens=document.querySelectorAll('.screen');
+  for(var i=0;i<screens.length;i++)screens[i].classList.toggle('on',i===n);
+  var btns=document.querySelectorAll('.stage-btn');
+  for(var j=0;j<btns.length;j++)btns[j].classList.toggle('active',j===n);
+  if(n===1)renderSpineList();
+  if(n===2)setTimeout(function(){layoutBoard();drawArrows();updateChips();},20);
+  if(n===3)renderExpl();
+  if(n===4){renderLoops();renderTrayWhy();}
+  if(n===5)renderCrit();
+  markDone();
+  window.scrollTo(0,0);
+}
+var sbs=document.querySelectorAll('.stage-btn');
+for(var si=0;si<sbs.length;si++){(function(b){
+  b.addEventListener('click',function(){go(+b.dataset.s);});
+})(sbs[si]);}
+
+function markDone(){
+  var st=status();
+  var flags=[!!(S.name&&S.period), S.spineChecked, st.spineOk&&st.branchN>=8, st.explAll, st.loopsNamed>=1, false];
+  var btns=document.querySelectorAll('.stage-btn');
+  for(var i=0;i<flags.length;i++)btns[i].classList.toggle('done',!!flags[i]);
+}
+
+/* ---------------- identity ---------------- */
+var pn=document.getElementById('pname'),pp=document.getElementById('pperiod');
+pn.value=S.name;pp.value=S.period;
+function who2(){document.getElementById('who2').textContent=(S.name?S.name:'')+(S.period?'  ·  Period '+S.period:'');}
+pn.addEventListener('input',function(){S.name=pn.value;save();who2();markDone();});
+pp.addEventListener('change',function(){S.period=pp.value;save();who2();markDone();});
+who2();
+
+/* ---------------- paste watcher (counts, never blocks) ---------------- */
+document.addEventListener('paste',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  if(t.tagName!=='TEXTAREA'&&t.tagName!=='INPUT')return;
+  if(!t.closest('.expl')&&!t.closest('.loopbox')&&!t.closest('.trayleft'))return;
+  var txt='';try{txt=((e.clipboardData||window.clipboardData).getData('text')||'');}catch(err){}
+  S.pastes.expl=(S.pastes.expl||0)+1;
+  S.pastes.chars=(S.pastes.chars||0)+txt.length;
+  save();
+},true);
+
+/* ================= STAGE 1 : spine ordering ================= */
+var spineDraft=null;
+function renderSpineList(){
+  var wrap=document.getElementById('spinelist');
+  if(!spineDraft){
+    spineDraft=SPINE.map(function(s){return s.id;});
+    /* deterministic shuffle so it is not already in order */
+    spineDraft.sort(function(a,b){return (a.charCodeAt(1)*7%11)-(b.charCodeAt(1)*7%11);});
+  }
+  wrap.innerHTML='';
+  spineDraft.forEach(function(id,i){
+    var r=document.createElement('div');r.className='spinerow';r.draggable=true;r.dataset.id=id;
+    r.innerHTML='<span class="num">'+(i+1)+'</span><span class="lab">'+node(id).label+'</span><span class="grip">&#8597;</span>';
+    r.addEventListener('dragstart',function(e){r.classList.add('dragging');e.dataTransfer.setData('text/plain',id);});
+    r.addEventListener('dragend',function(){r.classList.remove('dragging');});
+    r.addEventListener('dragover',function(e){e.preventDefault();});
+    r.addEventListener('drop',function(e){
+      e.preventDefault();
+      var from=e.dataTransfer.getData('text/plain'),to=id;
+      if(from===to)return;
+      var fi=spineDraft.indexOf(from);spineDraft.splice(fi,1);
+      var ti=spineDraft.indexOf(to);spineDraft.splice(ti,0,from);
+      renderSpineList();
+    });
+    wrap.appendChild(r);
+  });
+}
+document.getElementById('shuffleSpine').addEventListener('click',function(){
+  for(var i=spineDraft.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=spineDraft[i];spineDraft[i]=spineDraft[j];spineDraft[j]=t;}
+  renderSpineList();
+  document.getElementById('spineChip').className='chip';
+  document.getElementById('spineChip').textContent='not checked yet';
+});
+document.getElementById('checkSpine').addEventListener('click',function(){
+  var rows=document.querySelectorAll('#spinelist .spinerow'),right=0;
+  for(var i=0;i<rows.length;i++){
+    var ok=spineDraft[i]===SPINE_ORDER[i];
+    rows[i].classList.toggle('right',ok);rows[i].classList.toggle('wrong',!ok);
+    if(ok)right++;
+  }
+  var chip=document.getElementById('spineChip');
+  chip.textContent=right+' of 10 in the right place';
+  chip.className='chip '+(right===10?'ok':'bad');
+  if(right===10){S.spineChecked=true;save();markDone();
+    chip.textContent='10 of 10 — go to The Board';}
+});
+
+/* ================= STAGE 2 : the board ================= */
+var board=document.getElementById('board'),svg=document.getElementById('arrowlayer');
+var NW=132,NH=58,mode='move',srcId=null,selArrow=-1;
+
+function coach(html){var c=document.getElementById('coach');
+  if(!html){c.classList.add('hide');return;}
+  c.innerHTML=html;c.classList.remove('hide');}
+
+document.getElementById('modeMove').addEventListener('click',function(){setMode('move');});
+document.getElementById('modeArrow').addEventListener('click',function(){setMode('arrow');});
+function setMode(m){
+  mode=m;srcId=null;
+  document.getElementById('modeMove').classList.toggle('on',m==='move');
+  document.getElementById('modeArrow').classList.toggle('on',m==='arrow');
+  clearSrc();
+  coach(m==='arrow'?'Click the <b>cause</b> first, then the <b>effect</b>.':'');
+}
+document.getElementById('clearSel').addEventListener('click',function(){srcId=null;selArrow=-1;clearSrc();drawArrows();coach('');});
+function clearSrc(){var ns=board.querySelectorAll('.node');for(var i=0;i<ns.length;i++){ns[i].classList.remove('src');ns[i].classList.remove('hot');}}
+
+function makeNode(item,inTray){
+  var d=document.createElement('div');
+  d.className='node'+(isSpine(item.id)?' spine':'')+(isFilm(item.id)?' film':'');
+  d.dataset.id=item.id;d.innerHTML=item.label;
+  if(!inTray){
+    var p=S.pos[item.id];d.style.left=p.x+'px';d.style.top=p.y+'px';
+    attachNode(d);
+  }else{
+    d.addEventListener('pointerdown',function(e){trayGrab(e,item.id);});
+  }
+  return d;
+}
+function layoutBoard(){
+  var old=board.querySelectorAll('.node');for(var i=0;i<old.length;i++)old[i].remove();
+  for(var id in S.pos){var it=node(id);if(it)board.appendChild(makeNode(it,false));}
+  var tray=document.getElementById('tray');
+  tray.innerHTML='<div class="traylab">TRAY — drag a piece onto the board to use it. Anything you believe did not cause anything can stay here.</div>';
+  ALL.forEach(function(it){if(!S.pos[it.id])tray.appendChild(makeNode(it,true));});
+}
+/* drag from tray onto board */
+function trayGrab(e,id){
+  e.preventDefault();
+  var br=board.getBoundingClientRect();
+  var ghost=null;
+  function mv(ev){
+    if(!ghost){ghost=document.createElement('div');ghost.className='node dragging';
+      ghost.innerHTML=node(id).label;ghost.style.position='fixed';ghost.style.pointerEvents='none';
+      document.body.appendChild(ghost);}
+    ghost.style.left=(ev.clientX-NW/2)+'px';ghost.style.top=(ev.clientY-NH/2)+'px';
+  }
+  function up(ev){
+    document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);
+    if(ghost)ghost.remove();
+    var r=board.getBoundingClientRect();
+    if(ev.clientX>r.left&&ev.clientX<r.right&&ev.clientY>r.top&&ev.clientY<r.bottom){
+      var x=Math.max(2,Math.min(r.width-NW-2,ev.clientX-r.left-NW/2));
+      var y=Math.max(2,Math.min(r.height-NH-2,ev.clientY-r.top-NH/2));
+      S.pos[id]={x:Math.round(x),y:Math.round(y)};save();
+      layoutBoard();drawArrows();updateChips();markDone();
+    }
+  }
+  document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);
+}
+/* move / connect on board */
+function attachNode(d){
+  var id=d.dataset.id;
+  d.addEventListener('pointerdown',function(e){
+    if(mode==='arrow'){e.preventDefault();pickArrow(id);return;}
+    e.preventDefault();d.setPointerCapture&&d.setPointerCapture(e.pointerId);
+    var r=board.getBoundingClientRect(),dx=e.clientX-(r.left+d.offsetLeft),dy=e.clientY-(r.top+d.offsetTop);
+    d.classList.add('dragging');var moved=false;
+    function mv(ev){
+      moved=true;
+      var x=Math.max(2,Math.min(r.width-d.offsetWidth-2,ev.clientX-r.left-dx));
+      var y=Math.max(2,Math.min(r.height-d.offsetHeight-2,ev.clientY-r.top-dy));
+      d.style.left=x+'px';d.style.top=y+'px';drawArrows();
+    }
+    function up(){
+      document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);
+      d.classList.remove('dragging');
+      if(moved){S.pos[id]={x:parseInt(d.style.left,10),y:parseInt(d.style.top,10)};save();drawArrows();}
+    }
+    document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);
+  });
+  /* send back to tray */
+  d.addEventListener('dblclick',function(e){
+    if(mode==='arrow')return;
+    e.preventDefault();
+    S.arrows=S.arrows.filter(function(a){return a.f!==id&&a.t!==id;});
+    delete S.pos[id];delete S.trayWhy[id];save();
+    layoutBoard();drawArrows();updateChips();markDone();
+  });
+}
+function pickArrow(id){
+  if(srcId===null){srcId=id;clearSrc();
+    var n=board.querySelector('.node[data-id="'+id+'"]');if(n)n.classList.add('src');
+    coach('Cause: <b>'+labelOf(id)+'</b>. Now click what it caused.');return;}
+  if(srcId===id){srcId=null;clearSrc();coach('Click the <b>cause</b> first, then the <b>effect</b>.');return;}
+  var f=srcId,t=id;
+  var dup=-1;
+  for(var i=0;i<S.arrows.length;i++){
+    if(S.arrows[i].f===f&&S.arrows[i].t===t){dup=i;break;}
+    if(S.arrows[i].f===t&&S.arrows[i].t===f){dup=i;break;}
+  }
+  if(dup>=0){
+    S.arrows[dup]={f:f,t:t};
+    coach('Arrow updated: <b>'+labelOf(f)+'</b> &rarr; <b>'+labelOf(t)+'</b>');
+  }else{
+    S.arrows.push({f:f,t:t});
+    coach('<b>'+labelOf(f)+'</b> caused <b>'+labelOf(t)+'</b>. Explain it on the Explain screen.');
+  }
+  srcId=null;clearSrc();save();drawArrows();updateChips();markDone();
+}
+function centerOf(id){
+  var d=board.querySelector('.node[data-id="'+id+'"]');
+  if(!d)return null;
+  return{x:d.offsetLeft+d.offsetWidth/2,y:d.offsetTop+d.offsetHeight/2,w:d.offsetWidth,h:d.offsetHeight};
+}
+function edgePoint(a,b){
+  /* where the line from a to b leaves a's box */
+  var dx=b.x-a.x,dy=b.y-a.y;
+  if(dx===0&&dy===0)return{x:a.x,y:a.y};
+  var hw=a.w/2+4,hh=a.h/2+4;
+  var sx=dx===0?Infinity:hw/Math.abs(dx), sy=dy===0?Infinity:hh/Math.abs(dy);
+  var s=Math.min(sx,sy);
+  return{x:a.x+dx*s,y:a.y+dy*s};
+}
+function arrowKey(a){return a.f+'>'+a.t;}
+function drawArrows(){
+  while(svg.childNodes.length>1)svg.removeChild(svg.lastChild);
+  var loopEdges={};
+  var cyc=findCycles();
+  cyc.forEach(function(c){for(var i=0;i<c.length;i++){loopEdges[c[i]+'>'+c[(i+1)%c.length]]=1;}});
+  S.arrows.forEach(function(a,i){
+    var A=centerOf(a.f),B=centerOf(a.t);
+    if(!A||!B)return;
+    var p1=edgePoint(A,B),p2=edgePoint(B,A);
+    var mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+    var ndx=-(p2.y-p1.y),ndy=(p2.x-p1.x),len=Math.sqrt(ndx*ndx+ndy*ndy)||1;
+    var bow=18;mx+=ndx/len*bow;my+=ndy/len*bow;
+    var dstr='M '+p1.x+' '+p1.y+' Q '+mx+' '+my+' '+p2.x+' '+p2.y;
+    var hit=document.createElementNS('http://www.w3.org/2000/svg','path');
+    hit.setAttribute('d',dstr);hit.setAttribute('class','arrowhit');
+    var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',dstr);
+    var isLoop=!!loopEdges[arrowKey(a)];
+    var hasExpl=!!(S.expl[arrowKey(a)]&&S.expl[arrowKey(a)].trim());
+    path.setAttribute('class','arrowpath'+(isLoop?' loop':'')+(selArrow===i?' sel':'')+(hasExpl?'':' noexpl'));
+    path.setAttribute('marker-end','url(#'+(selArrow===i?'aht':(isLoop?'ahg':'ah'))+')');
+    function onPick(ev){
+      ev.stopPropagation();
+      selArrow=(selArrow===i?-1:i);
+      drawArrows();
+      if(selArrow===i){
+        coach(labelOf(a.f)+' &rarr; '+labelOf(a.t)+
+          ' &nbsp;<span style="color:#2f6b63">[F] flip</span> &nbsp;<span style="color:#9b2d20">[Delete] remove</span>');
+      }else coach('');
+    }
+    hit.addEventListener('click',onPick);path.addEventListener('click',onPick);
+    svg.appendChild(hit);svg.appendChild(path);
+  });
+}
+document.addEventListener('keydown',function(e){
+  if(selArrow<0)return;
+  var a=S.arrows[selArrow];if(!a)return;
+  if(e.key==='f'||e.key==='F'){
+    var old=arrowKey(a),t=a.f;a.f=a.t;a.t=t;
+    var nk=arrowKey(a);
+    if(S.expl[old]){S.expl[nk]=S.expl[old];delete S.expl[old];}
+    save();drawArrows();updateChips();
+    coach('Flipped: <b>'+labelOf(a.f)+'</b> &rarr; <b>'+labelOf(a.t)+'</b>');
+  }
+  if(e.key==='Delete'||e.key==='Backspace'){
+    delete S.expl[arrowKey(a)];
+    S.arrows.splice(selArrow,1);selArrow=-1;save();drawArrows();updateChips();markDone();coach('');
+  }
+});
+document.getElementById('board').addEventListener('click',function(e){
+  if(e.target.id==='board'||e.target.id==='arrowlayer'){selArrow=-1;srcId=null;clearSrc();drawArrows();
+    coach(mode==='arrow'?'Click the <b>cause</b> first, then the <b>effect</b>.':'');}
+});
+document.getElementById('autoSpine').addEventListener('click',function(){
+  /* spine hugs the top and bottom edges, leaving the middle band free for
+     the branch pieces the student hangs off it */
+  var r=board.getBoundingClientRect();
+  var cols=5,gapx=(r.width-NW-24)/(cols-1);
+  SPINE_ORDER.forEach(function(id,i){
+    var row=Math.floor(i/cols);
+    var c=(row===1)?(cols-1-(i%cols)):(i%cols);   /* second row runs back right-to-left */
+    S.pos[id]={x:Math.round(12+c*gapx),
+               y:Math.round(row===0?10:r.height-NH-14)};
+  });
+  save();layoutBoard();drawArrows();updateChips();markDone();
+  coach('Spine laid out. Now connect them in order, then hang the other pieces off it.');
+});
+
+/* ---------- graph analysis ---------- */
+function outMap(){
+  var m={};S.arrows.forEach(function(a){(m[a.f]=m[a.f]||[]).push(a.t);});return m;
+}
+function longestChain(){
+  /* longest simple directed path, capped search for safety */
+  var m=outMap(),best=0,steps=0;
+  function dfs(n,seen,d){
+    if(++steps>60000)return;
+    if(d>best)best=d;
+    var outs=m[n]||[];
+    for(var i=0;i<outs.length;i++){
+      if(seen[outs[i]])continue;
+      seen[outs[i]]=1;dfs(outs[i],seen,d+1);seen[outs[i]]=0;
+    }
+  }
+  for(var id in S.pos){var seen={};seen[id]=1;dfs(id,seen,0);}
+  return best; /* number of arrows in the longest path */
+}
+function findCycles(){
+  /* all simple directed cycles, deduped by their smallest rotation */
+  var m=outMap(),found={},out=[],steps=0;
+  var nodes=Object.keys(S.pos);
+  nodes.forEach(function(start){
+    var stack=[];var onstack={};
+    (function dfs(n){
+      if(++steps>80000)return;
+      stack.push(n);onstack[n]=1;
+      var outs=m[n]||[];
+      for(var i=0;i<outs.length;i++){
+        var nx=outs[i];
+        if(nx===start&&stack.length>1){
+          var cyc=stack.slice();
+          var mi=0;for(var k=1;k<cyc.length;k++)if(cyc[k]<cyc[mi])mi=k;
+          var rot=cyc.slice(mi).concat(cyc.slice(0,mi));
+          var key=rot.join('>');
+          if(!found[key]){found[key]=1;out.push(rot);}
+        }else if(!onstack[nx]&&nx>start){
+          dfs(nx);
+        }
+      }
+      stack.pop();onstack[n]=0;
+    })(start);
+  });
+  return out.slice(0,8);
+}
+function status(){
+  var placed=Object.keys(S.pos);
+  var spineOnBoard=SPINE_ORDER.filter(function(id){return !!S.pos[id];}).length;
+  var have={};S.arrows.forEach(function(a){have[a.f+'>'+a.t]=1;});
+  var inOrder=0;
+  for(var i=0;i<SPINE_ORDER.length-1;i++)if(have[SPINE_ORDER[i]+'>'+SPINE_ORDER[i+1]])inOrder++;
+  var connected={};S.arrows.forEach(function(a){connected[a.f]=1;connected[a.t]=1;});
+  var branchN=placed.filter(function(id){return !isSpine(id)&&connected[id];}).length;
+  var filmsOk=FILMS.filter(function(f){
+    return S.pos[f.id]&&connected[f.id]&&(S.expl['film:'+f.id]||'').trim();
+  }).length;
+  var explAll=S.arrows.length>0&&S.arrows.every(function(a){return (S.expl[a.f+'>'+a.t]||'').trim().length>0;});
+  var loopsFound=findCycles();
+  var loopsNamed=0;loopsFound.forEach(function(c){if((S.loops[c.join('>')]||'').trim())loopsNamed++;});
+  return{placed:placed.length,spineOnBoard:spineOnBoard,spineInOrder:inOrder,
+    spineOk:(spineOnBoard===10&&inOrder===9),branchN:branchN,filmsOk:filmsOk,
+    depth:longestChain(),explAll:explAll,arrows:S.arrows.length,
+    loopsFound:loopsFound,loopsNamed:loopsNamed};
+}
+function updateChips(){
+  var st=status(),h='';
+  function chip(ok,txt){return '<span class="chip '+(ok?'ok':'bad')+'">'+txt+'</span>';}
+  h+=chip(st.spineOk,'Spine '+st.spineOnBoard+'/10 placed, '+st.spineInOrder+'/9 linked');
+  h+=chip(st.branchN>=8,'Other pieces connected '+st.branchN+'/8');
+  h+=chip(st.depth>=3,'Deepest chain '+st.depth+' (need 3)');
+  h+=chip(st.loopsFound.length>=1,'Loops on board '+st.loopsFound.length);
+  h+=chip(st.filmsOk===3,'Films '+st.filmsOk+'/3');
+  h+=chip(st.arrows>0&&st.explAll,'Arrows explained '+
+    S.arrows.filter(function(a){return (S.expl[a.f+'>'+a.t]||'').trim();}).length+'/'+st.arrows);
+  document.getElementById('boardChips').innerHTML=h;
+}
+
+/* ================= STAGE 3 : explanations ================= */
+function renderExpl(){
+  var w=document.getElementById('explwrap');w.innerHTML='';
+  if(!S.arrows.length){w.innerHTML='<p>No arrows yet. Go back to <b>The Board</b> and draw some.</p>';return;}
+  S.arrows.forEach(function(a){
+    var k=a.f+'>'+a.t;
+    var d=document.createElement('div');d.className='expl'+((S.expl[k]||'').trim()?' done':'');
+    d.innerHTML='<div class="lab">'+labelOf(a.f)+' &rarr; '+labelOf(a.t)+'</div>'+
+      '<div class="frame">'+labelOf(a.f)+' caused '+labelOf(a.t)+' because&hellip;</div>';
+    var ta=document.createElement('textarea');
+    ta.placeholder='…finish the sentence in your own words.';
+    ta.value=S.expl[k]||'';
+    ta.addEventListener('input',function(){S.expl[k]=ta.value;save();
+      d.classList.toggle('done',!!ta.value.trim());markDone();});
+    d.appendChild(ta);w.appendChild(d);
+  });
+  /* film scene boxes */
+  FILMS.forEach(function(f){
+    if(!S.pos[f.id])return;
+    var k='film:'+f.id;
+    var d=document.createElement('div');d.className='expl'+((S.expl[k]||'').trim()?' done':'');
+    d.innerHTML='<div class="lab">'+labelOf(f.id)+'</div>'+
+      '<div class="frame">Name the <b>scene</b> you are thinking of, and what it shows about the piece you connected it to.</div>';
+    var ta=document.createElement('textarea');ta.value=S.expl[k]||'';
+    ta.placeholder='The scene where…';
+    ta.addEventListener('input',function(){S.expl[k]=ta.value;save();
+      d.classList.toggle('done',!!ta.value.trim());markDone();});
+    d.appendChild(ta);w.appendChild(d);
+  });
+}
+
+/* ================= STAGE 4 : loops + tray ================= */
+function renderLoops(){
+  var w=document.getElementById('loopwrap');w.innerHTML='';
+  var cycles=findCycles();
+  if(!cycles.length){
+    w.innerHTML='<p><b>No loops on your board yet.</b> Go back and look for a circle. '+
+      'Ask yourself: did any of these effects turn around and feed the thing that caused them?</p>';return;}
+  cycles.forEach(function(c){
+    var k=c.join('>');
+    var d=document.createElement('div');d.className='loopbox';
+    var chain=c.map(function(id){return labelOf(id);}).join(' &rarr; ')+' &rarr; '+labelOf(c[0]);
+    d.innerHTML='<div class="lab">'+chain+'</div>'+
+      '<div class="frame" style="font-size:1.6vh;color:#6d6252;font-style:italic;margin-bottom:.5vh;">Give this loop a name, and say in a few words why it kept going.</div>';
+    var inp=document.createElement('input');inp.value=S.loops[k]||'';
+    inp.placeholder='e.g. the labor loop — industry needed workers, workers kept arriving…';
+    inp.addEventListener('input',function(){S.loops[k]=inp.value;save();markDone();});
+    d.appendChild(inp);w.appendChild(d);
+  });
+}
+function renderTrayWhy(){
+  var w=document.getElementById('traywrap');w.innerHTML='';
+  var connected={};S.arrows.forEach(function(a){connected[a.f]=1;connected[a.t]=1;});
+  var left=ALL.filter(function(it){return !S.pos[it.id]||!connected[it.id];});
+  if(!left.length){w.innerHTML='<p>Nothing left out. Every piece is in your chain.</p>';return;}
+  left.forEach(function(it){
+    var d=document.createElement('div');d.className='trayleft';
+    d.innerHTML='<div class="lab" style="font-weight:700;color:var(--accent);font-size:1.75vh;margin-bottom:.4vh;">'+it.label+'</div>';
+    var inp=document.createElement('input');
+    inp.style.cssText='width:100%;background:#fff;border:1.5px solid var(--line);border-radius:4px;font-size:1.7vh;font-family:inherit;padding:.6vh .6vw;';
+    inp.value=S.trayWhy[it.id]||'';
+    inp.placeholder='Why does this not belong in the chain?';
+    inp.addEventListener('input',function(){S.trayWhy[it.id]=inp.value;save();});
+    d.appendChild(inp);w.appendChild(d);
+  });
+}
+
+/* ================= STAGE 5 : criteria, save file, finish ================= */
+function renderCrit(){
+  var t=document.getElementById('crittable');t.innerHTML='';
+  CRITERIA.forEach(function(c,i){
+    var tr=document.createElement('tr');
+    var td1=document.createElement('td');td1.className='c';
+    var cb=document.createElement('input');cb.type='checkbox';cb.checked=!!S.crit[i];
+    cb.addEventListener('change',function(){S.crit[i]=cb.checked;save();});
+    td1.appendChild(cb);
+    var td2=document.createElement('td');td2.innerHTML=c;
+    tr.appendChild(td1);tr.appendChild(td2);t.appendChild(tr);
+  });
+}
+document.getElementById('saveFile').addEventListener('click',function(){
+  var blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='GridGame-USHistory1-'+((S.name||'student').trim().replace(/\s+/g,'')||'student')+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  document.getElementById('saveMsg').textContent='Saved. Keep that file for tomorrow.';
+});
+document.getElementById('loadFile').addEventListener('click',function(){document.getElementById('fileIn').click();});
+document.getElementById('fileIn').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;
+  var fr=new FileReader();
+  fr.onload=function(){
+    try{
+      var o=JSON.parse(fr.result);
+      for(var k in S)if(o[k]!==undefined)S[k]=o[k];
+      S.day2=true;save();
+      pn.value=S.name;pp.value=S.period;who2();
+      document.getElementById('saveMsg').textContent='Loaded. Your board is back.';
+      layoutBoard();drawArrows();updateChips();markDone();
+    }catch(err){document.getElementById('saveMsg').style.color='#9b2d20';
+      document.getElementById('saveMsg').textContent='That file did not load. Try the other one.';}
+  };
+  fr.readAsText(f);
+});
+
+/* ---------------- tracker ---------------- */
+var TRACKER_URL='https://script.google.com/macros/s/AKfycbyt_3MiJKaCRixmGR18wIieVrtzPSwGk-zAEsolRE5-NrOdA0H5ghPhOsaGgNOIDDIv/exec';
+var GAME_NAME='Grid Game US History 1';
+function trackerPayload(){
+  var st=status();
+  var words=S.arrows.map(function(a){var t=(S.expl[a.f+'>'+a.t]||'').trim();return t?t.split(/\s+/).length:0;});
+  var shortest=words.length?Math.min.apply(null,words):0;
+  return{game:GAME_NAME,name:S.name||'',period:S.period||'',
+    nodesPlaced:st.placed,arrows:st.arrows,
+    spineOnBoard:st.spineOnBoard,spineInOrder:st.spineInOrder,spineOk:st.spineOk,
+    branchConnected:st.branchN,deepestChain:st.depth,
+    loopsFound:st.loopsFound.length,loopsNamed:st.loopsNamed,
+    filmsConnected:st.filmsOk,explAll:st.explAll,
+    explWords:words,shortestExplWords:shortest,
+    arrowList:S.arrows.map(function(a){return labelOf(a.f)+' -> '+labelOf(a.t);}),
+    explText:S.arrows.map(function(a){return (S.expl[a.f+'>'+a.t]||'').trim();}),
+    loopNames:Object.keys(S.loops).map(function(k){return S.loops[k];}).filter(function(x){return x&&x.trim();}),
+    leftInTray:ALL.filter(function(it){return !S.pos[it.id];}).map(function(it){return labelOf(it.id);}),
+    decoysInChain:Object.keys(DECOY_IDS).filter(function(id){
+      return S.arrows.some(function(a){return a.f===id||a.t===id;});}).map(labelOf),
+    critChecked:(S.crit||[]).filter(function(b){return b;}).length,critTotal:CRITERIA.length,
+    timeSpent:S.t0?Math.round((Date.now()-S.t0)/1000):'',
+    pastes:S.pastes.expl||0,pasteChars:S.pastes.chars||0,
+    ts:new Date().toISOString()};
+}
+function sendTracker(){
+  if(!TRACKER_URL||TRACKER_URL.indexOf('http')!==0)return;
+  try{
+    var body=JSON.stringify(trackerPayload());
+    if(navigator.sendBeacon){
+      navigator.sendBeacon(TRACKER_URL,new Blob([body],{type:'text/plain;charset=UTF-8'}));
+    }else{
+      fetch(TRACKER_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:body});
+    }
+  }catch(e){}
+}
+
+/* ---------------- finish / report ---------------- */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function boardSVG(){
+  var ids=Object.keys(S.pos);if(!ids.length)return'';
+  var xs=[],ys=[];
+  ids.forEach(function(id){var p=S.pos[id];xs.push(p.x);ys.push(p.y);});
+  var minx=Math.min.apply(0,xs)-24,miny=Math.min.apply(0,ys)-24;
+  var maxx=Math.max.apply(0,xs)+NW+24,maxy=Math.max.apply(0,ys)+NH+24;
+  var loopEdges={};findCycles().forEach(function(c){for(var i=0;i<c.length;i++)loopEdges[c[i]+'>'+c[(i+1)%c.length]]=1;});
+  var s='<svg viewBox="'+minx+' '+miny+' '+(maxx-minx)+' '+(maxy-miny)+'" xmlns="http://www.w3.org/2000/svg">';
+  s+='<defs>'+
+     '<marker id="rah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 12 6 L 0 12 z" fill="#333"/></marker>'+
+     '<marker id="rahg" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 12 6 L 0 12 z" fill="#a8791f"/></marker>'+
+     '</defs>';
+  S.arrows.forEach(function(a){
+    var A=S.pos[a.f],B=S.pos[a.t];if(!A||!B)return;
+    var ax=A.x+NW/2,ay=A.y+NH/2,bx=B.x+NW/2,by=B.y+NH/2;
+    /* stop the line at the edge of the target box so the head is not hidden under it */
+    var dx=bx-ax,dy=by-ay,L=Math.sqrt(dx*dx+dy*dy)||1;
+    var hw=NW/2+7,hh=NH/2+7;
+    var sx=Math.abs(dx)<1e-6?Infinity:hw/Math.abs(dx), sy=Math.abs(dy)<1e-6?Infinity:hh/Math.abs(dy);
+    var k=Math.min(sx,sy);
+    var ex=bx-dx*k, ey=by-dy*k;
+    var k2=Math.min(Math.abs(dx)<1e-6?Infinity:hw/Math.abs(dx), Math.abs(dy)<1e-6?Infinity:hh/Math.abs(dy));
+    var stx=ax+dx*k2, sty=ay+dy*k2;
+    var lp=!!loopEdges[a.f+'>'+a.t];
+    s+='<line x1="'+stx+'" y1="'+sty+'" x2="'+ex+'" y2="'+ey+'" stroke="'+(lp?'#a8791f':'#333')+
+       '" stroke-width="'+(lp?2.4:1.6)+'" marker-end="url(#'+(lp?'rahg':'rah')+')"/>';
+  });
+  ids.forEach(function(id){
+    var p=S.pos[id],sp=isSpine(id),fl=isFilm(id);
+    s+='<rect x="'+p.x+'" y="'+p.y+'" width="'+NW+'" height="'+NH+'" rx="4" fill="'+(sp?'#2b3a55':(fl?'#efe3c6':'#e8dcc4'))+'" stroke="#555" stroke-width="1.2"/>';
+    var words=labelOf(id).split(' '),lines=[],cur='';
+    words.forEach(function(w){if((cur+' '+w).trim().length>17){lines.push(cur.trim());cur=w;}else cur+=' '+w;});
+    if(cur.trim())lines.push(cur.trim());
+    var ty=p.y+NH/2-(lines.length-1)*6;
+    lines.forEach(function(ln,i){
+      s+='<text x="'+(p.x+NW/2)+'" y="'+(ty+i*12+4)+'" text-anchor="middle" font-size="10.5" font-weight="bold" fill="'+(sp?'#fff':'#1d1a16')+'">'+esc(ln)+'</text>';
+    });
+  });
+  return s+'</svg>';
+}
+document.getElementById('finishBtn').addEventListener('click',function(){
+  var warn=document.getElementById('finishWarn');warn.textContent='';
+  var st=status(),missing=[];
+  if(!S.name.trim())missing.push('your NAME (Briefing screen)');
+  if(!S.period)missing.push('your PERIOD');
+  if(!st.spineOk)missing.push('the full spine in order ('+st.spineOnBoard+'/10 placed, '+st.spineInOrder+'/9 linked)');
+  if(st.branchN<8)missing.push('8 other pieces connected ('+st.branchN+'/8)');
+  if(st.depth<3)missing.push('a chain 3 causes deep (yours is '+st.depth+')');
+  if(st.loopsNamed<1)missing.push('one named loop');
+  if(st.filmsOk<3)missing.push('all 3 films connected with a scene ('+st.filmsOk+'/3)');
+  if(!st.explAll)missing.push('a sentence on every arrow');
+  if(missing.length){warn.innerHTML='Before you submit, finish: '+missing.join(' &nbsp;·&nbsp; ');return;}
+  buildReport();
+  document.title='GridGame-USHistory1-'+(S.name.trim().replace(/\s+/g,'')||'Student');
+  sendTracker();
+  setTimeout(function(){window.print();},80);
+});
+function buildReport(){
+  var st=status(),h='';
+  h+='<h1>GRID GAME — US History: Cause &amp; Effect</h1>';
+  h+='<div class="meta"><b>'+esc(S.name)+'</b> &middot; Period '+esc(S.period)+
+     ' &middot; Semester Review, 1840s to 1941</div>';
+  h+='<h2>My Board</h2>'+boardSVG();
+  h+='<div class="pagebreak"></div><h2>My Causal Chain, In Sentences</h2>';
+  h+='<table><tr><th style="width:34%">The claim</th><th>Why I say so</th></tr>';
+  S.arrows.forEach(function(a){
+    h+='<tr><td><b>'+esc(labelOf(a.f))+'</b> &rarr; <b>'+esc(labelOf(a.t))+'</b></td><td>'+
+       esc(S.expl[a.f+'>'+a.t]||'')+'</td></tr>';
+  });
+  h+='</table>';
+  var films=FILMS.filter(function(f){return S.pos[f.id];});
+  if(films.length){
+    h+='<h2>Films</h2><table><tr><th style="width:34%">Film</th><th>The scene, and what it shows</th></tr>';
+    films.forEach(function(f){h+='<tr><td><b>'+esc(labelOf(f.id))+'</b></td><td>'+esc(S.expl['film:'+f.id]||'')+'</td></tr>';});
+    h+='</table>';
+  }
+  h+='<h2>Loops Found: '+st.loopsFound.length+' &nbsp; (named: '+st.loopsNamed+')</h2>';
+  if(st.loopsFound.length){
+    h+='<table><tr><th style="width:46%">The circle</th><th>What the student called it</th></tr>';
+    st.loopsFound.forEach(function(c){
+      var k=c.join('>');
+      h+='<tr><td>'+esc(c.map(labelOf).join(' → ')+' → '+labelOf(c[0]))+'</td><td>'+esc(S.loops[k]||'')+'</td></tr>';
+    });
+    h+='</table>';
+  }else h+='<div class="rc">None.</div>';
+  var leftOut=ALL.filter(function(it){return !S.pos[it.id];});
+  h+='<h2>Left Out of the Chain</h2>';
+  if(leftOut.length){
+    h+='<table><tr><th style="width:34%">Piece</th><th>Why the student left it out</th></tr>';
+    leftOut.forEach(function(it){
+      h+='<tr><td>'+esc(labelOf(it.id))+(DECOY_IDS[it.id]?' <i>(coincidence set)</i>':'')+'</td><td>'+
+         esc(S.trayWhy[it.id]||'')+'</td></tr>';});
+    h+='</table>';
+  }else h+='<div class="rc">Nothing left out.</div>';
+  var decoysWired=Object.keys(DECOY_IDS).filter(function(id){
+    return S.arrows.some(function(a){return a.f===id||a.t===id;});});
+  if(decoysWired.length){
+    h+='<div class="rc"><b>For the teacher:</b> wired into the causal chain from the coincidence set — '+
+       esc(decoysWired.map(labelOf).join(', '))+'. Worth asking them to defend.</div>';
+  }
+  var words=S.arrows.map(function(a){var t=(S.expl[a.f+'>'+a.t]||'').trim();return t?t.split(/\s+/).length:0;});
+  h+='<h2>Summary</h2>';
+  h+='<div class="rc">Pieces on the board: '+st.placed+' &nbsp;·&nbsp; Arrows: '+st.arrows+
+     ' &nbsp;·&nbsp; Deepest chain: '+st.depth+' &nbsp;·&nbsp; Loops found: '+st.loopsFound.length+
+     ' &nbsp;·&nbsp; Shortest explanation: '+(words.length?Math.min.apply(null,words):0)+' words</div>';
+  h+='<h2>Success Criteria</h2>';
+  CRITERIA.forEach(function(c,i){h+='<div class="rc">'+(S.crit[i]?'☑':'☐')+' '+c.replace(/<\/?b>/g,'')+'</div>';});
+  h+='<div class="rc" style="margin-top:8pt;color:#777">Grid Game · US History semester review · submit this PDF on Google Classroom</div>';
+  document.getElementById('report').innerHTML=h;
+}
+
+/* ---------------- boot ---------------- */
+if(S.name||S.period||Object.keys(S.pos).length){
+  document.getElementById('begin').classList.add('hidden');
+  go(S.stage||0);
+}
+window.addEventListener('resize',function(){if(S.stage===2)drawArrows();});
+</script>
+</body>
+</html>
